@@ -4,7 +4,7 @@ from typing import List, Optional
 from langchain_core.tools import StructuredTool
 from pydantic import BaseModel
 
-reranker = OpenAIEmbeddingReranker()
+# reranker = OpenAIEmbeddingReranker()
 
 
 class WebSearchArgsSchema(BaseModel):
@@ -54,12 +54,12 @@ class WebTools():
         try:
             async with self.crawler_pool.get_crawler() as crawler:
                 results = await crawler.run(urls)
-                if query:
-                    results = await split_and_reranker(query, results)
-                    print(results)
-                    return results
-                else:
-                    return results
+                # if query:
+                #     results = await split_and_reranker(query, results)
+                #     print(results)
+                #     return results
+                # else:
+                return results
         except:
             return results
 

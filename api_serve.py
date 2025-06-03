@@ -2,12 +2,12 @@ from pydantic import BaseModel
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-from agent import ToolsGraph
+from agent.tools import WebTools
 from pools import BrowserPool, CrawlerPool
 
 browser_pool = BrowserPool(pool_size=1)
 crawler_pool = CrawlerPool(pool_size=1)
-graph = ToolsGraph(browser_pool, crawler_pool, engine="sougou")
+webtool = WebTools(browser_pool, crawler_pool, engine="sougou")
 
 
 @asynccontextmanager
@@ -40,8 +40,18 @@ class QueryRequest(BaseModel):
 
 @app.post("/search")
 async def search(query: QueryRequest):
-    result = await graph.run(query.question)
-    return {"data": result}
+    input = query.question
+    if not isinstance(input, list):
+        input = [input]
+    results = await webtool.web_search_function(input)
+    contents = {}
+    for k in results:
+        urls = [v["url"] for v in results[k]]
+        print(urls)
+        contents[k] = await webtool.link_parser_function(urls)
+        if contents[k]:
+            results[k] = {"search": results[k], "crawl":contents[k]}
+    return {"data": results}
 
 if __name__ == "__main__":
     import uvicorn
